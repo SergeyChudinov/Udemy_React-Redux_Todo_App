@@ -17,7 +17,41 @@ class App extends Component {
       { label: 'Drink Coffee', important: false, done: false, id: 1 },
       { label: 'Make Awesome App', important: false, done: false, id: 2 },
       { label: 'Have a lunch', important: false, done: false, id: 3 }
-    ]
+    ],
+    term: '',
+    filter: 'All'
+  }
+
+  onUpdateSearch = (term) => {
+    this.setState({
+      term: term
+    });
+  }
+
+  searchEmp = (items, term) => {
+    if (term.length === 0) {
+        return items
+    }
+    return items.filter((item) => {
+        return item.label.toLowerCase().indexOf(term.toLowerCase()) > -1
+    })
+  }
+
+  onFilterSelect = (filter) => {
+    this.setState({
+        filter: filter
+    })
+  }
+
+  filtePost = (items, filter) => {
+    switch (filter) {
+        case 'Active':
+            return items.filter(item => !item.done);
+        case 'Done':
+            return items.filter(item => item.done);   
+        default:
+            return items;             
+    }
   }
 
   onToggleProp = (id, prop) => {
@@ -61,23 +95,25 @@ class App extends Component {
   };
 
   render() {
-    let { todoData } = this.state;
+    const { todoData, term, filter } = this.state;
 
-    let todoCount = todoData.filter(item => {
+    const todoCount = todoData.filter(item => {
       return item.done === false
     }).length;
-    let doneCount = todoData.length - todoCount;
+    const doneCount = todoData.length - todoCount;
 
+    const visibleData = this.filtePost(this.searchEmp(todoData, term), filter);
 
     return (
       <div className="todo-app">
         <AppHeader toDo={todoCount} done={doneCount} />
         <div className="top-panel d-flex">
-          <SearchPanel />
-          <ItemStatusFilter />
+          <SearchPanel onUpdateSearch={this.onUpdateSearch} />
+          <ItemStatusFilter onFilterSelect={this.onFilterSelect}
+          filter={filter} />
         </div>
   
-        <TodoList todos={todoData} onDeleted={this.deleteItem} onToggleProp={this.onToggleProp} />
+        <TodoList todos={visibleData} onDeleted={this.deleteItem} onToggleProp={this.onToggleProp} />
 
         <ItemAddForm onItemAdded={this.addItem}/>
       </div>
